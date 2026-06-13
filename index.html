@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Australian To-Do List: gestisci le tue attività in modo semplice, con tema chiaro/scuro e salvataggio automatico.">
+    <meta name="author" content="Australian To-Do List">
+    <meta name="robots" content="index, follow">
+    <title>🇦🇺 Australian To-Do List</title>
+    <!-- Favicon from jsDelivr + GitHub -->
+    <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/andreadevita99/Australian-To-Do-List@57731e45de6bb6e2b48707620b566361b074baa1/favicon.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* ===== VARIABILI TEMA CHIARO (default) ===== */
+        :root {
+            --bg-gradient-start: #f6f9fc;
+            --bg-gradient-end: #eef2f7;
+            --card-bg: rgba(255, 255, 255, 0.96);
+            --card-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.12), 0 8px 24px -6px rgba(0, 0, 0, 0.05);
+            --header-border: #f0f2f5;
+            --text-primary: #1e2b3c;
+            --text-secondary: #5e7c8c;
+            --input-border: #e2e8f0;
+            --input-bg: #ffffff;
+            --input-focus: #2c7da0;
+            --btn-primary-bg: #2c7da0;
+            --btn-primary-hover: #226a88;
+            --task-item-bg: #ffffff;
+            --task-item-border: #eef2f8;
+            --task-item-hover-border: #dce5ec;
+            --task-text-color: #1f2f3a;
+            --task-completed-color: #8ea3b0;
+            --footer-bg: #fafcff;
+            --footer-border: #ecf3f9;
+            --counter-bg: #eef3fc;
+            --scrollbar-track: #eef2f7;
+            --scrollbar-thumb: #cbdce6;
+            --empty-msg-color: #8ca3b3;
+        }
+
+        /* ===== TEMA SCURO ===== */
+        body.dark {
+            --bg-gradient-start: #121826;
+            --bg-gradient-end: #0f131f;
+            --card-bg: #1e2538;
+            --card-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.4);
+            --header-border: #2a334a;
+            --text-primary: #eef2ff;
+            --text-secondary: #9aa9c1;
+            --input-border: #2f3b54;
+            --input-bg: #252e44;
+            --input-focus: #4f9fcf;
+            --btn-primary-bg: #2c7da0;
+            --btn-primary-hover: #3e93b8;
+            --task-item-bg: #1e2538;
+            --task-item-border: #2a334a;
+            --task-item-hover-border: #3e4a66;
+            --task-text-color: #eef2ff;
+            --task-completed-color: #7788aa;
+            --footer-bg: #191f2e;
+            --footer-border: #2a334a;
+            --counter-bg: #252e44;
+            --scrollbar-track: #1e2538;
+            --scrollbar-thumb: #3a445e;
+            --empty-msg-color: #8f9bb3;
+        }
+
+        body {
+            background: linear-gradient(145deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            font-family: system-ui, -apple-system, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+            padding: 1.5rem 1rem 3rem;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background 0.3s ease, color 0.2s;
+        }
+
+        .todo-card {
+            max-width: 700px;
+            width: 100%;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border-radius: 2rem;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            transition: background 0.25s, box-shadow 0.3s;
+        }
+
+        .todo-header {
+            padding: 1.5rem 1.8rem 0.8rem;
+            background: transparent;
+            border-bottom: 1px solid var(--header-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .title-area h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #2c7da0, #4f9fcf);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .flag-emoji {
+            font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Android Emoji", "EmojiOne Color", sans-serif;
+            display: inline-block;
+            background: none;
+            -webkit-background-clip: unset;
+            background-clip: unset;
+            color: inherit;
+        }
+
+        /* TOGGLE iOS STYLE */
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+        }
+        .ios-toggle {
+            position: relative;
+            display: inline-block;
+            width: 70px;
+            height: 34px;
+        }
+        .ios-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .toggle-track {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ced4e0;
+            border-radius: 34px;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 8px;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+        }
+        body.dark .toggle-track {
+            background-color: #2f3b54;
+        }
+        .toggle-sun, .toggle-moon {
+            font-size: 18px;
+            line-height: 1;
+            z-index: 1;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+        .toggle-sun { opacity: 0.9; }
+        .toggle-moon { opacity: 0.7; }
+        body.dark .toggle-sun { opacity: 0.5; }
+        body.dark .toggle-moon { opacity: 1; text-shadow: 0 0 2px #ffdd99; }
+        .toggle-thumb {
+            position: absolute;
+            height: 28px;
+            width: 28px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            z-index: 2;
+        }
+        input:checked + .toggle-track .toggle-thumb {
+            transform: translateX(36px);
+        }
+
+        .add-task-area {
+            padding: 1rem 1.8rem 0.5rem;
+            background: transparent;
+        }
+        .input-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+        .task-input {
+            flex: 1;
+            padding: 14px 18px;
+            font-size: 1rem;
+            border: 1.5px solid var(--input-border);
+            border-radius: 60px;
+            background: var(--input-bg);
+            transition: all 0.2s;
+            outline: none;
+            font-weight: 450;
+            color: var(--task-text-color);
+        }
+        .task-input:focus {
+            border-color: var(--input-focus);
+            box-shadow: 0 0 0 3px rgba(44,125,160,0.2);
+        }
+        .add-btn {
+            background: var(--btn-primary-bg);
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 0 24px;
+            height: 52px;
+            border-radius: 60px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        .add-btn:hover {
+            background: var(--btn-primary-hover);
+            transform: scale(0.97);
+        }
+
+        .task-list-container {
+            background: transparent;
+            max-height: 480px;
+            overflow-y: auto;
+            padding: 0 0.2rem 0 0;
+        }
+        .task-list {
+            list-style: none;
+            margin: 0;
+            padding: 0.2rem 1.2rem 1.2rem 1.2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .task-item {
+            background: var(--task-item-bg);
+            border-radius: 1.2rem;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            transition: all 0.2s;
+            border: 1px solid var(--task-item-border);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+        .task-item:hover {
+            border-color: var(--task-item-hover-border);
+        }
+        .task-check {
+            transform: scale(1.2);
+            accent-color: #2c7da0;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .task-text {
+            flex: 1;
+            font-size: 1rem;
+            font-weight: 480;
+            color: var(--task-text-color);
+            word-break: break-word;
+            padding: 4px 0;
+        }
+        .completed-task {
+            text-decoration: line-through;
+            color: var(--task-completed-color);
+        }
+        .task-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+            margin-left: auto;
+            align-items: center;
+        }
+        .icon-btn {
+            background: transparent;
+            border: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            width: 38px;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+            color: var(--text-secondary);
+        }
+        .icon-btn.edit-btn:hover {
+            background: rgba(44,125,160,0.15);
+            color: #2c7da0;
+        }
+        .icon-btn.delete-btn:hover {
+            background: rgba(224,90,74,0.15);
+            color: #e05a4a;
+        }
+
+        .todo-footer {
+            padding: 1rem 1.8rem 1.6rem;
+            background: var(--footer-bg);
+            border-top: 1px solid var(--footer-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        .counter-badge {
+            background: var(--counter-bg);
+            padding: 5px 12px;
+            border-radius: 30px;
+        }
+        .empty-message {
+            text-align: center;
+            padding: 2.5rem 1rem;
+            color: var(--empty-msg-color);
+            font-weight: 480;
+        }
+
+        .task-list-container::-webkit-scrollbar {
+            width: 5px;
+        }
+        .task-list-container::-webkit-scrollbar-track {
+            background: var(--scrollbar-track);
+            border-radius: 10px;
+        }
+        .task-list-container::-webkit-scrollbar-thumb {
+            background: var(--scrollbar-thumb);
+            border-radius: 10px;
+        }
+
+        @media (max-width: 550px) {
+            body { padding: 0.8rem 0.8rem 2rem; }
+            .todo-header { padding: 1rem 1rem 0.5rem; }
+            .title-area h1 { font-size: 1.6rem; }
+            .input-group { flex-direction: column; align-items: stretch; }
+            .add-btn { justify-content: center; }
+            .task-item { padding: 12px 12px; }
+            .task-actions { margin-left: 28px; }
+            .icon-btn { width: 40px; height: 40px; }
+        }
+
+        button:focus-visible, .task-input:focus-visible {
+            outline: 2px solid #2c7da0;
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+<div class="todo-card" role="main">
+    <div class="todo-header">
+        <div class="title-area">
+            <h1>
+                <span class="flag-emoji">🇦🇺</span> 
+                Australian to-do list
+            </h1>
+        </div>
+        <div class="theme-switch-wrapper">
+            <label class="ios-toggle" aria-label="Attiva/disattiva modalità scura">
+                <input type="checkbox" id="darkModeToggle">
+                <div class="toggle-track">
+                    <span class="toggle-sun">☀️</span>
+                    <span class="toggle-moon">🌙</span>
+                    <div class="toggle-thumb"></div>
+                </div>
+            </label>
+        </div>
+    </div>
+
+    <div class="add-task-area">
+        <div class="input-group">
+            <input type="text" id="newTaskInput" class="task-input" placeholder="Aggiungi nuova attività..." aria-label="Nuovo compito">
+            <button id="addTaskBtn" class="add-btn" aria-label="Aggiungi compito">+ Aggiungi</button>
+        </div>
+    </div>
+
+    <div class="task-list-container">
+        <ul id="taskList" class="task-list"></ul>
+    </div>
+
+    <div class="todo-footer">
+        <span class="counter-badge" id="taskCounter">0 attività rimanenti</span>
+        <span style="font-size:0.75rem;">✔️ salvataggio automatico</span>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ---------- NUOVA LISTA RICHIESTA ----------
+        const NEW_TASKS_LIST = [
+            { text: "Foto fatta bene di un Koala su un Eucalipto", completed: false },
+            { text: "Foto fatta bene di un canguro nel suo ambiente naturale", completed: false },
+            { text: "Salsa piccante dall'amico chef di Giaela", completed: false },
+            { text: "Boomerang aborigeno originale (nel caso va anche bene un boomerang qualsiasi acquistato in Australia): in entrambi i casi deve avere solo 2 punte", completed: false }
+        ];
+
+        let tasks = [];
+
+        // DOM elementi
+        const taskListEl = document.getElementById('taskList');
+        const newTaskInput = document.getElementById('newTaskInput');
+        const addBtn = document.getElementById('addTaskBtn');
+        const taskCounterSpan = document.getElementById('taskCounter');
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        
+        // ========== DARK MODE ==========
+        function initDarkMode() {
+            const savedTheme = localStorage.getItem('taskflow_theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const isDark = savedTheme === 'dark' || (savedTheme === null && prefersDark);
+            if (isDark) {
+                document.body.classList.add('dark');
+                if (darkModeToggle) darkModeToggle.checked = true;
+            } else {
+                document.body.classList.remove('dark');
+                if (darkModeToggle) darkModeToggle.checked = false;
+            }
+        }
+        
+        function toggleDarkMode(enableDark) {
+            if (enableDark) {
+                document.body.classList.add('dark');
+                localStorage.setItem('taskflow_theme', 'dark');
+            } else {
+                document.body.classList.remove('dark');
+                localStorage.setItem('taskflow_theme', 'light');
+            }
+        }
+        
+        if (darkModeToggle) {
+            darkModeToggle.addEventListener('change', (e) => toggleDarkMode(e.target.checked));
+        }
+        
+        // ========== GESTIONE TASK ==========
+        function saveToLocalStorage() {
+            localStorage.setItem('taskflow_tasks', JSON.stringify(tasks));
+        }
+
+        // Forza l'uso delle nuove voci, ignorando qualsiasi lista precedente
+        function loadOrResetTasks() {
+            const stored = localStorage.getItem('taskflow_tasks');
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        // Controllo se la prima voce corrisponde alla nuova lista (opzionale, ma per sicurezza resetto)
+                        // Per essere sicuri al 100%, confrontiamo i testi in modo semplice
+                        const firstTaskText = parsed[0]?.text || "";
+                        const isNewFirstTask = firstTaskText.includes("Koala su un Eucalipto");
+                        if (!isNewFirstTask) {
+                            // Se il primo task non è quello nuovo, resetta
+                            tasks = NEW_TASKS_LIST.map((t, idx) => ({ 
+                                id: Date.now() + idx, 
+                                text: t.text, 
+                                completed: t.completed 
+                            }));
+                            saveToLocalStorage();
+                            return;
+                        } else {
+                            tasks = parsed;
+                            return;
+                        }
+                    }
+                } catch(e) {}
+            }
+            // Se non c'è stored o è vuoto/invalido, crea nuova lista
+            tasks = NEW_TASKS_LIST.map((t, idx) => ({ 
+                id: Date.now() + idx, 
+                text: t.text, 
+                completed: t.completed 
+            }));
+            saveToLocalStorage();
+        }
+
+        function updateCounter() {
+            const activeCount = tasks.filter(t => !t.completed).length;
+            const text = activeCount === 1 ? '1 attività rimanente' : `${activeCount} attività rimanenti`;
+            taskCounterSpan.textContent = text;
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        function render() {
+            if (tasks.length === 0) {
+                taskListEl.innerHTML = `<li class="empty-message">📭 Nessuna attività. Aggiungine una! ➕</li>`;
+                updateCounter();
+                return;
+            }
+            let html = '';
+            tasks.forEach(task => {
+                const isCompleted = task.completed;
+                const textClass = isCompleted ? 'task-text completed-task' : 'task-text';
+                const checkedAttr = isCompleted ? 'checked' : '';
+                html += `
+                    <li class="task-item" data-task-id="${task.id}">
+                        <input type="checkbox" class="task-check" ${checkedAttr} aria-label="Segna come completato">
+                        <span class="${textClass}">${escapeHtml(task.text)}</span>
+                        <div class="task-actions">
+                            <button class="icon-btn edit-btn" aria-label="Modifica attività" title="Modifica">✏️</button>
+                            <button class="icon-btn delete-btn" aria-label="Elimina attività" title="Elimina">🗑️</button>
+                        </div>
+                    </li>
+                `;
+            });
+            taskListEl.innerHTML = html;
+            updateCounter();
+        }
+
+        function addTask() {
+            let text = newTaskInput.value.trim();
+            if (text === "") {
+                alert("Scrivi qualcosa per aggiungere un'attività ✍️");
+                return;
+            }
+            const newTask = { id: Date.now(), text: text, completed: false };
+            tasks.push(newTask);
+            saveToLocalStorage();
+            newTaskInput.value = "";
+            render();
+        }
+
+        function deleteTaskById(taskId) {
+            const taskToDelete = tasks.find(t => t.id == taskId);
+            if (!taskToDelete) return;
+            if (confirm(`Eliminare "${taskToDelete.text}"?`)) {
+                tasks = tasks.filter(t => t.id != taskId);
+                saveToLocalStorage();
+                render();
+            }
+        }
+
+        function toggleComplete(taskId) {
+            const task = tasks.find(t => t.id == taskId);
+            if (task) {
+                task.completed = !task.completed;
+                saveToLocalStorage();
+                render();
+            }
+        }
+
+        function editTaskById(taskId) {
+            const task = tasks.find(t => t.id == taskId);
+            if (!task) return;
+            let newText = prompt("Modifica il tuo compito:", task.text);
+            if (newText !== null) {
+                newText = newText.trim();
+                if (newText === "") {
+                    alert("Il testo non può essere vuoto.");
+                    return;
+                }
+                task.text = newText;
+                saveToLocalStorage();
+                render();
+            }
+        }
+
+        function handleTaskListClick(e) {
+            const taskItem = e.target.closest('.task-item');
+            if (!taskItem) return;
+            const taskId = parseInt(taskItem.getAttribute('data-task-id'));
+            if (e.target.classList.contains('task-check')) {
+                toggleComplete(taskId);
+                return;
+            }
+            if (e.target.classList.contains('edit-btn') || e.target.closest('.edit-btn')) {
+                editTaskById(taskId);
+                return;
+            }
+            if (e.target.classList.contains('delete-btn') || e.target.closest('.delete-btn')) {
+                deleteTaskById(taskId);
+                return;
+            }
+        }
+
+        function bindAddEvents() {
+            addBtn.addEventListener('click', addTask);
+            newTaskInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addTask();
+                }
+            });
+        }
+
+        function init() {
+            loadOrResetTasks();   // ← FORZA l'uso delle nuove 4 voci
+            initDarkMode();
+            bindAddEvents();
+            taskListEl.addEventListener('click', handleTaskListClick);
+            render();
+        }
+        
+        init();
+    })();
+</script>
+</body>
+</html>
